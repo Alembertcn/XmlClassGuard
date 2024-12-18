@@ -8,6 +8,7 @@ pluginManagement {
         }
         maven { url 'https://jitpack.io' }
         maven { url 'https://raw.githubusercontent.com/martinloren/AabResGuard/mvn-repo' }
+        maven { url "https://mirrors.tencent.com/nexus/repository/maven-public/" }
     }
 }
 dependencyResolutionManagement {
@@ -16,6 +17,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url 'https://raw.githubusercontent.com/martinloren/AabResGuard/mvn-repo' }
+        maven { url "https://mirrors.tencent.com/nexus/repository/maven-public/" }
         jcenter()   //AndResGuard在jcenter上
     }
 }
