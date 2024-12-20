@@ -2,7 +2,11 @@ plugins {
     id 'kotlin'
     id 'org.jetbrains.kotlin.jvm'
 }
-
+ext{
+    publishGroup = "plugins"
+    moduleName = 'XmlClassGuard'
+    descContent = '混淆'
+}
 apply from: 'publishing_maven.gradle'
 
 

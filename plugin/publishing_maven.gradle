@@ -1,6 +1,5 @@
 apply plugin: 'maven-publish'
 
-version = publishVersion
 group = publishGroup
 
 // https://developer.android.com/studio/build/maven-publish-plugin?hl=zh-cn
@@ -12,8 +11,8 @@ afterEvaluate {
             release(MavenPublication){
                 groupId "wb.$publishGroup"
                 artifactId moduleName
-                version publishVersion
-                from components.release
+                version "$plugin_version"
+                from components.java
             }
         }
         repositories {
