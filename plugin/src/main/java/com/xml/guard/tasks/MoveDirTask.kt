@@ -111,6 +111,7 @@ open class MoveDirTask @Inject constructor(
                  */
                 replaceText = replaceText.replaceWords("$newPath.R", "$oldPath.R")
                     .replaceWords("$newPath.BR", "$oldPath.BR")
+                    .replaceWords("$newPath.R2", "$oldPath.R2")
                     .replaceWords("$newPath.BuildConfig", "$oldPath.BuildConfig")
                     .replaceWords("$newPath.databinding", "$oldPath.databinding")
             }
