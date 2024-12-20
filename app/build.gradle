@@ -6,6 +6,7 @@ plugins {
 apply from: 'aabresguard.gradle'
 
 apply from: 'xmlclassguard.gradle'
+apply from: 'androidjunkcode.gradle'
 
 android {
     namespace 'com.ljx.example'
