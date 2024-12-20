@@ -1,0 +1,32 @@
+apply plugin: 'maven-publish'
+
+version = publishVersion
+group = publishGroup
+
+// https://developer.android.com/studio/build/maven-publish-plugin?hl=zh-cn
+// https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven:publications
+afterEvaluate {
+    println("rootDir---> $rootDir")
+    publishing{
+        publications{
+            release(MavenPublication){
+                groupId "wb.$publishGroup"
+                artifactId moduleName
+                version publishVersion
+                from components.release
+            }
+        }
+        repositories {
+            maven {
+                // change to point to your repo, e.g. http://my.org/repo
+//                url = uri("$rootDir/repo")
+                allowInsecureProtocol = true
+                url 'https://web-gy.httester.com/repository/maven-releases'
+                credentials {
+                    username System.getenv("WB_REPO_USER")
+                    password System.getenv("WB_REPO_PWD")
+                }
+            }
+        }
+    }
+}

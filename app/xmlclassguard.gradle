@@ -21,7 +21,9 @@ xmlClassGuard {
                      "com.ljx.base"   : "ggg.kkk",
                      "com.ljx.kts"    : "ff.dd"]
     //移动目录，支持同时移动多个目录
-    moveDir = ["com.ljx.example": "ef.gh",
+    moveDir = [
+            "com.ljx.example.activity": "ac",
+            "com.ljx.example": "ef.gh",
                "com.ljx.base"   : "zzzz.hhhh",
                "com.ljx.kts"    : "ddd.xxx"]
 }
