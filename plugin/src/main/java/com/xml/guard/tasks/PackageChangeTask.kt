@@ -59,6 +59,7 @@ open class PackageChangeTask @Inject constructor(
         files(javaDirs).asFileTree.forEach { javaFile ->
             javaFile.readText()
                 .replaceWords("$oldPackage.R", "$newPackage.R")
+                .replaceWords("$oldPackage.R2", "$newPackage.R2")
                 .replaceWords("$oldPackage.BR", "$newPackage.BR")
                 .replaceWords("$oldPackage.BuildConfig", "$newPackage.BuildConfig")
                 .replaceWords("$oldPackage.databinding", "$newPackage.databinding")
