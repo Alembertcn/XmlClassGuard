@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 /**
@@ -146,7 +147,7 @@ open class XmlClassGuardTask @Inject constructor(
         val obfuscatePackage = obfuscatePath.substring(0, obfuscateIndex)
         val obfuscateName = obfuscatePath.substring(obfuscateIndex + 1)
 
-        var replaceText = rawText
+        var replaceText = rawText.replace(rawText,obfuscatePath)
         when {
             rawFile.absolutePath.removeSuffix()
                 .endsWith(obfuscatePath.replace(".", File.separator)) -> {
@@ -154,7 +155,9 @@ open class XmlClassGuardTask @Inject constructor(
                 replaceText = replaceText
                     .replaceWords("package $rawPackage", "package $obfuscatePackage")
                     .replaceWords(rawPath, obfuscatePath)
-                    .replaceWords(rawName, obfuscateName)
+                if(replaceText.contains("import $obfuscatePath")){
+                    replaceText = replaceText.replaceWords(rawName, obfuscateName)
+                }
             }
 
             rawFile.parent.endsWith(obfuscatePackage.replace(".", File.separator)) -> {

@@ -30,6 +30,7 @@ fun String.inPackageNameBlackList() = this in packageNameBlackList
 
 
 private val packagePattern = Pattern.compile("\\s*package\\s+(.*)")
+private val hasRPattern = Pattern.compile("\\s*import \\s+(.*)\\.R")
 
 //插入 import xx.xx.xx.R  import xx.xx.xx.BuildConfig    语句，
 fun File.insertImportXxxIfAbsent(newPackage: String) {
@@ -38,7 +39,8 @@ fun File.insertImportXxxIfAbsent(newPackage: String) {
     val importBR = "import $newPackage.BR"
     val importBuildConfig = "import $newPackage.BuildConfig"
     //如果使用了R类但没有导入，则需要导入
-    val needImportR = text.findWord("R.") != -1 && text.findWord(importR) == -1
+    val needImportR =
+        text.findWord("R.") != -1 && text.findWord(importR) == -1 && !hasRPattern.matcher(text).find()
     //如果使用了BR类但没有导入，则需要导入
     val needImportBR = text.findWord("BR.") != -1 && text.findWord(importBR) == -1
     //如果使用了BuildConfig类但没有导入，则需要导入

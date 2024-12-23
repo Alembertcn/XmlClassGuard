@@ -1,0 +1,1 @@
+./gradlew :plugin:publish --stacktrace

@@ -109,11 +109,16 @@ open class MoveDirTask @Inject constructor(
                  移动目录时，manifest里的package属性不会更改
                  上面代码会将将R、BuildConfig等类路径替换掉，所以这里需要还原回去
                  */
-                replaceText = replaceText.replaceWords("$newPath.R", "$oldPath.R")
-                    .replaceWords("$newPath.BR", "$oldPath.BR")
-                    .replaceWords("$newPath.R2", "$oldPath.R2")
-                    .replaceWords("$newPath.BuildConfig", "$oldPath.BuildConfig")
-                    .replaceWords("$newPath.databinding", "$oldPath.databinding")
+//                replaceText = replaceText.replaceWords("$newPath.R", "$oldPath.R")
+//                    .replaceWords("$newPath.BR", "$oldPath.BR")
+//                    .replaceWords("$newPath.R2", "$oldPath.R2")
+//                    .replaceWords("$newPath.BuildConfig", "$oldPath.BuildConfig")
+//                    .replaceWords("$newPath.databinding", "$oldPath.databinding")
+                replaceText = replaceText.replaceWords("$newPath.R", "$manifestPackage.R")
+                    .replaceWords("$newPath.BR", "$manifestPackage.BR")
+                    .replaceWords("$newPath.R2", "$manifestPackage.R2")
+                    .replaceWords("$newPath.BuildConfig", "$manifestPackage.BuildConfig")
+                    .replaceWords("$newPath.databinding", "$manifestPackage.databinding")
             }
         }
         writeText(replaceText)
