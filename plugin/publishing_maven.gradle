@@ -15,17 +15,20 @@ afterEvaluate {
                 from components.java
             }
         }
-        repositories {
-            maven {
-                // change to point to your repo, e.g. http://my.org/repo
+        if(!useMavenLocal){
+            repositories {
+                maven {
+                    // change to point to your repo, e.g. http://my.org/repo
 //                url = uri("$rootDir/repo")
-                allowInsecureProtocol = true
-                url 'https://web-gy.httester.com/repository/maven-releases'
-                credentials {
-                    username System.getenv("WB_REPO_USER")
-                    password System.getenv("WB_REPO_PWD")
+                    allowInsecureProtocol = true
+                    url 'https://web-gy.httester.com/repository/maven-releases'
+                    credentials {
+                        username System.getenv("WB_REPO_USER")
+                        password System.getenv("WB_REPO_PWD")
+                    }
                 }
             }
         }
+
     }
 }

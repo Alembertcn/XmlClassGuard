@@ -1,11 +1,11 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
         if ("true" == useMavenLocal) {
             mavenLocal()
         }
+        gradlePluginPortal()
+        google()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
         maven { url 'https://raw.githubusercontent.com/martinloren/AabResGuard/mvn-repo' }
         maven { url "https://mirrors.tencent.com/nexus/repository/maven-public/" }
@@ -14,6 +14,9 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
+        if ("true" == useMavenLocal) {
+            mavenLocal()
+        }
         google()
         mavenCentral()
         maven { url 'https://raw.githubusercontent.com/martinloren/AabResGuard/mvn-repo' }
