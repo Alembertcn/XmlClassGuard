@@ -251,7 +251,9 @@ class mapping:
 
 ![donations.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fa6d3941c2c944e59831640fa0ece60d~tplv-k3u1fbpfcp-watermark.image?)
 
- 
+
+
+./gradlew "-Dorg.gradle.daemon=false" "-Dorg.gradle.debug=true" :app:xmlClassGuardDebug
 
 
 
