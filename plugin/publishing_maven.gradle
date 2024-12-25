@@ -11,7 +11,7 @@ afterEvaluate {
             release(MavenPublication){
                 groupId "wb.$publishGroup"
                 artifactId moduleName
-                version "$plugin_version"
+                version publishVersion
                 from components.java
             }
         }

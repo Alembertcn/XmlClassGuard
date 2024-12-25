@@ -5,6 +5,7 @@ plugins {
 ext{
     publishGroup = "plugins"
     moduleName = 'XmlClassGuard'
+    publishVersion = '1.2.10'
     descContent = '混淆'
 }
 apply from: 'publishing_maven.gradle'
