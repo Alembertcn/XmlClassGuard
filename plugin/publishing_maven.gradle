@@ -15,7 +15,7 @@ afterEvaluate {
                 from components.java
             }
         }
-        if(!useMavenLocal){
+        if("true" == useMavenLocal){
             repositories {
                 maven {
                     // change to point to your repo, e.g. http://my.org/repo
