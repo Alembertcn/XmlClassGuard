@@ -117,6 +117,10 @@ open class XmlClassGuardTask @Inject constructor(
                 xmlText = xmlText.replaceWords("${rawClassName}.", "${obfuscateClassName}.")
             }
         }
+        // 替换xml里的变量引用
+        mapping.classMapping.forEach {
+            xmlText = xmlText.replaceWords(it.key, it.value)
+        }
         xmlFile.writeText(xmlText)
     }
 
@@ -174,10 +178,10 @@ open class XmlClassGuardTask @Inject constructor(
                 replaceText = replaceText.replaceWords(rawPath, obfuscatePath)  //替换{包名+类名}
                     .replaceWords("$rawPackage.*", "$obfuscatePackage.*")
                 //替换成功或已替换
-                if (replaceText != rawText || replaceText.contains("$obfuscatePackage.*")) {
+                if (replaceText != rawText || replaceText.contains(obfuscatePackage)) {
                     //rawFile 文件内有引用 rawName 类，则需要替换类名
 //                    replaceText = replaceText.replaceWords(rawName, obfuscateName)
-                    if(replaceText.contains("import $obfuscatePath")){
+                    if(replaceText.contains("import $obfuscatePath") || replaceText.contains("import $obfuscatePackage.*")){
 //                        replaceText = replaceText.replaceWords(rawName, obfuscateName)
                         replaceText = replaceText.replace(Regex("(?<!\\bclass(\\s)?|\\.)\\b($rawName)\\b"),obfuscateName)
                     }
