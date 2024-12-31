@@ -56,6 +56,18 @@ open class XmlClassGuardTask @Inject constructor(
         //3、替换Java/kotlin文件里引用到的类
         if (classMapping.isNotEmpty()) {
             androidProjects.forEach { replaceJavaText(it, classMapping) }
+
+            // replace proguard-rules.pro
+            androidProjects.forEach {
+                val proguardFile = File(it.projectDir, "proguard-rules.pro")
+                if((it.name == "app" || it.name == "module_src") && proguardFile.exists()){
+                    var replaceText = proguardFile.readText()
+                    classMapping.forEach {
+                        replaceText = replaceText.replaceWords(it.key,it.value)
+                    }
+                    proguardFile.writeText(replaceText)
+                }
+            }
         }
         //4、混淆映射写出到文件
         mapping.writeMappingToFile(mappingFile)
