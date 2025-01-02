@@ -11,6 +11,7 @@ import com.xml.guard.utils.findLocationProject
 import com.xml.guard.utils.findPackage
 import com.xml.guard.utils.findXmlDirs
 import com.xml.guard.utils.getDirPath
+import com.xml.guard.utils.insertImportXxxIfAbsent
 import com.xml.guard.utils.javaDirs
 import com.xml.guard.utils.manifestFile
 import com.xml.guard.utils.removeSuffix
@@ -19,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-import java.util.regex.Pattern
 import javax.inject.Inject
 
 /**
@@ -44,6 +44,10 @@ open class XmlClassGuardTask @Inject constructor(
     @TaskAction
     fun execute() {
         val androidProjects = allDependencyAndroidProjects()
+        //1、遍历res下的xml文件，先收集混淆类
+        androidProjects.forEach { handleResDir(it,true) }
+        mapping.obfuscateAllClass(project, variantName,true)
+
         //1、遍历res下的xml文件，找到自定义的类(View/Fragment/四大组件等)，并将混淆结果同步到xml文件内
         androidProjects.forEach { handleResDir(it) }
         //2、仅修改文件名及文件路径，返回本次修改的文件
@@ -62,17 +66,23 @@ open class XmlClassGuardTask @Inject constructor(
     }
 
     //处理res目录
-    private fun handleResDir(project: Project) {
+    private fun handleResDir(project: Project,isOnlyCollection:Boolean = false) {
         val packageName = project.findPackage()
         //过滤res目录下的layout、navigation、xml目录
         val xmlDirs = project.findXmlDirs(variantName, "layout", "navigation", "xml")
         xmlDirs.add(project.manifestFile())
         project.files(xmlDirs).asFileTree.forEach { xmlFile ->
-            guardXml(project, xmlFile, packageName)
+            guardXml(project, xmlFile, packageName,isOnlyCollection)
         }
+
     }
 
-    private fun guardXml(project: Project, xmlFile: File, packageName: String) {
+    private fun guardXml(
+        project: Project,
+        xmlFile: File,
+        packageName: String,
+        isOnlyCollection: Boolean
+    ) {
         var xmlText = xmlFile.readText()
         val classInfoList = mutableListOf<ClassInfo>()
         val parentName = xmlFile.parentFile.name
@@ -99,13 +109,16 @@ open class XmlClassGuardTask @Inject constructor(
             val dirPath = classPath.getDirPath()
             //本地不存在这个文件
             if (project.findLocationProject(dirPath, variantName) == null) continue
-            //已经混淆了这个类
+            //已经混淆
             if (mapping.isObfuscated(classPath)) continue
+
             val obfuscatePath = mapping.obfuscatePath(classPath)
+            if(isOnlyCollection) continue;
+
             xmlText = xmlText.replaceWords(classPath, obfuscatePath)
             if (classPath.startsWith(packageName)) {
-                xmlText =
-                    xmlText.replaceWords(classPath.substring(packageName.length), obfuscatePath)
+                xmlText.replace(Regex("(?<!\\.)\\b(${classPath.substring(packageName.length)})\\b"),obfuscatePath)
+//                xmlText = xmlText.replaceWords(classPath.substring(packageName.length), obfuscatePath)
             }
             if (classInfo.fromImportNode) {
                 var classStartIndex = classPath.indexOfLast { it == '.' }
@@ -116,6 +129,7 @@ open class XmlClassGuardTask @Inject constructor(
                 val obfuscateClassName = obfuscatePath.substring(classStartIndex + 1)
                 xmlText = xmlText.replaceWords("${rawClassName}.", "${obfuscateClassName}.")
             }
+
         }
         // 替换xml里的变量引用
         mapping.classMapping.forEach {
@@ -134,6 +148,8 @@ open class XmlClassGuardTask @Inject constructor(
                 replaceText = replaceText(javaFile, replaceText, it.key, it.value)
             }
             javaFile.writeText(replaceText)
+            //自动导入R类
+            javaFile.insertImportXxxIfAbsent(project.findPackage())
         }
     }
 
