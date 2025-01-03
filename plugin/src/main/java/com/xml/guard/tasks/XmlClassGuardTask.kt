@@ -122,8 +122,7 @@ open class XmlClassGuardTask @Inject constructor(
 
             xmlText = xmlText.replaceWords(classPath, obfuscatePath)
             if (classPath.startsWith(packageName)) {
-                xmlText.replace(Regex("(?<!\\.)\\b(${classPath.substring(packageName.length)})\\b"),obfuscatePath)
-//                xmlText = xmlText.replaceWords(classPath.substring(packageName.length), obfuscatePath)
+                xmlText = xmlText.replace(Regex("(${classPath.substring(packageName.length)})\\b"),obfuscatePath)
             }
             if (classInfo.fromImportNode) {
                 var classStartIndex = classPath.indexOfLast { it == '.' }
