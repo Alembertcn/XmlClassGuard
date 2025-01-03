@@ -44,10 +44,6 @@ open class XmlClassGuardTask @Inject constructor(
     @TaskAction
     fun execute() {
         val androidProjects = allDependencyAndroidProjects()
-        //1、遍历res下的xml文件，先收集混淆类
-        androidProjects.forEach { handleResDir(it,true) }
-        mapping.obfuscateAllClass(project, variantName,true)
-
         //1、遍历res下的xml文件，找到自定义的类(View/Fragment/四大组件等)，并将混淆结果同步到xml文件内
         androidProjects.forEach { handleResDir(it) }
         //2、仅修改文件名及文件路径，返回本次修改的文件
@@ -78,22 +74,20 @@ open class XmlClassGuardTask @Inject constructor(
     }
 
     //处理res目录
-    private fun handleResDir(project: Project,isOnlyCollection:Boolean = false) {
+    private fun handleResDir(project: Project) {
         val packageName = project.findPackage()
         //过滤res目录下的layout、navigation、xml目录
         val xmlDirs = project.findXmlDirs(variantName, "layout", "navigation", "xml")
         xmlDirs.add(project.manifestFile())
         project.files(xmlDirs).asFileTree.forEach { xmlFile ->
-            guardXml(project, xmlFile, packageName,isOnlyCollection)
+            guardXml(project, xmlFile, packageName)
         }
-
     }
 
     private fun guardXml(
         project: Project,
         xmlFile: File,
-        packageName: String,
-        isOnlyCollection: Boolean
+        packageName: String
     ) {
         var xmlText = xmlFile.readText()
         val classInfoList = mutableListOf<ClassInfo>()
@@ -125,7 +119,6 @@ open class XmlClassGuardTask @Inject constructor(
             if (mapping.isObfuscated(classPath)) continue
 
             val obfuscatePath = mapping.obfuscatePath(classPath)
-            if(isOnlyCollection) continue;
 
             xmlText = xmlText.replaceWords(classPath, obfuscatePath)
             if (classPath.startsWith(packageName)) {
@@ -141,11 +134,6 @@ open class XmlClassGuardTask @Inject constructor(
                 val obfuscateClassName = obfuscatePath.substring(classStartIndex + 1)
                 xmlText = xmlText.replaceWords("${rawClassName}.", "${obfuscateClassName}.")
             }
-
-        }
-        // 替换xml里的变量引用
-        mapping.classMapping.forEach {
-            xmlText = xmlText.replaceWords(it.key, it.value)
         }
         xmlFile.writeText(xmlText)
     }
