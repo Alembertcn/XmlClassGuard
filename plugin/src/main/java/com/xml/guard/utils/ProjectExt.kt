@@ -134,17 +134,19 @@ fun Project.isAndroidProject() =
             || plugins.hasPlugin("com.android.library")
 
 //查找dir所在的Project，dir不存在，返回null
-fun Project.findLocationProject(dir: String, variantName: String): Project? {
+fun Project.findLocationProject(dir: String, variantName: String,ignores:List<Project?> = ArrayList()): Project? {
     val packageName = dir.replace(".", File.separator)
     val javaDirs = javaDirs(variantName)
-    if (javaDirs.any { File(it, packageName).exists() }) {
+    if (javaDirs.any { File(it, packageName).exists() } && !ignores.contains(this)) {
         return this
     }
     val dependencyProjects = mutableListOf<Project>()
     findDependencyAndroidProject(dependencyProjects)
     dependencyProjects.forEach {
-        val project = it.findLocationProject(dir, variantName)
-        if (project != null) return project
+        if(!ignores.contains(it)){
+            val project = it.findLocationProject(dir, variantName,ignores)
+            if (project != null) return project
+        }
     }
     return null
 }

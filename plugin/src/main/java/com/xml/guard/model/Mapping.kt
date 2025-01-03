@@ -40,60 +40,66 @@ class Mapping {
     internal var packageNameIndex = -1L
 
     //遍历文件夹下的所有直接子类，混淆文件名及移动目录
-    fun obfuscateAllClass(project: Project, variantName: String): MutableMap<String, String> {
+    fun obfuscateAllClass(project: Project, variantName: String,isOnlyCollection: Boolean = false): MutableMap<String, String> {
         val classMapped = mutableMapOf<String, String>()
         val iterator = dirMapping.iterator()
         while (iterator.hasNext()) {
             val entry = iterator.next()
             val rawDir = entry.key
-            val locationProject = project.findLocationProject(rawDir, variantName)
-            if (locationProject == null) {
-                iterator.remove()
-                continue
-            }
-            val manifestPackage = locationProject.findPackage()
-            //过滤目录的直接子文件
-            val dirPath = rawDir.replace(".", File.separator) //xx.xx  不带文件名
-            val childFiles = locationProject.javaDirs(variantName).flatMap {
-                File(it, dirPath).listFiles { f ->
-                    val filename = f.name
-                    f.isFile && (filename.endsWith(".java") || filename.endsWith(".kt"))
-                }?.toList() ?: emptyList()
-            }
-            if (childFiles.isEmpty()) continue
-            for (file in childFiles) {
-                val rawClassPath = "${rawDir}.${file.name.removeSuffix()}" //原始 xx.Xxx
-                //已经混淆
-                if (isObfuscated(rawClassPath)) continue
-                if (rawDir == manifestPackage) {
-                    file.insertImportXxxIfAbsent(manifestPackage)
+            var locationProject = project.findLocationProject(rawDir, variantName)
+            var ignores =  mutableListOf<Project?>()
+            // 这里防止多个项目有相同的包名目录 所以这里循环处理
+            while (locationProject!=null){
+                val manifestPackage = locationProject.findPackage()
+                //过滤目录的直接子文件
+                val dirPath = rawDir.replace(".", File.separator) //xx.xx  不带文件名
+                val childFiles = locationProject.javaDirs(variantName).flatMap {
+                    File(it, dirPath).listFiles { f ->
+                        val filename = f.name
+                        f.isFile && (filename.endsWith(".java") || filename.endsWith(".kt"))
+                    }?.toList() ?: emptyList()
                 }
-                val obfuscatePath = obfuscatePath(rawClassPath)  //混淆后 xx.Xxx
-                val obfuscateRelativePath = obfuscatePath.replace(".", File.separator) //混淆后 xx/Xxx
-                val rawRelativePath = rawClassPath.replace(".", File.separator) //原始 xx/Xxx
-                //替换原始类路径
-                val newFile =
-                    File(file.absolutePath.replace(rawRelativePath, obfuscateRelativePath))
-                if (!newFile.exists()) newFile.parentFile.mkdirs()
-                if (file.renameTo(newFile)) {
-                    classMapped[rawClassPath] = obfuscatePath
+                if (childFiles.isNotEmpty()){
+                    for (file in childFiles) {
+                        val rawClassPath = "${rawDir}.${file.name.removeSuffix()}" //原始 xx.Xxx
+                        //已经混淆
+                        if (isObfuscated(rawClassPath)) continue
 
-                    //处理顶级类、方法及变量
-                    val obfuscateDir = obfuscatePath.getDirPath()
-                    val filename = file.name.removeSuffix()
-                    val ktParser = KtFileParser(newFile, filename)
-                    val jvmName = ktParser.jvmName
-                    if (jvmName != null && jvmName != filename) {
-                        classMapped["$rawDir.$jvmName"] = "$obfuscateDir.$jvmName"
-                    } else if (jvmName == null &&
-                        (ktParser.topFunNames.isNotEmpty() || ktParser.topFieldNames.isNotEmpty())
-                    ) {
-                        classMapped["${rawClassPath}Kt"] = "${obfuscatePath}Kt"
-                    }
-                    ktParser.getTopClassOrFunOrFieldNames().forEach {
-                        classMapped["$rawDir.$it"] = "$obfuscateDir.$it"
+                        val obfuscatePath = obfuscatePath(rawClassPath)  //混淆后 xx.Xxx
+                        if(isOnlyCollection) continue
+
+                        if (rawDir == manifestPackage) {
+                            file.insertImportXxxIfAbsent(manifestPackage)
+                        }
+                        val obfuscateRelativePath = obfuscatePath.replace(".", File.separator) //混淆后 xx/Xxx
+                        val rawRelativePath = rawClassPath.replace(".", File.separator) //原始 xx/Xxx
+                        //替换原始类路径
+                        val newFile =
+                            File(file.absolutePath.replace(rawRelativePath, obfuscateRelativePath))
+                        if (!newFile.exists()) newFile.parentFile.mkdirs()
+                        if (file.renameTo(newFile)) {
+                            classMapped[rawClassPath] = obfuscatePath
+
+                            //处理顶级类、方法及变量
+                            val obfuscateDir = obfuscatePath.getDirPath()
+                            val filename = file.name.removeSuffix()
+                            val ktParser = KtFileParser(newFile, filename)
+                            val jvmName = ktParser.jvmName
+                            if (jvmName != null && jvmName != filename) {
+                                classMapped["$rawDir.$jvmName"] = "$obfuscateDir.$jvmName"
+                            } else if (jvmName == null &&
+                                (ktParser.topFunNames.isNotEmpty() || ktParser.topFieldNames.isNotEmpty())
+                            ) {
+                                classMapped["${rawClassPath}Kt"] = "${obfuscatePath}Kt"
+                            }
+                            ktParser.getTopClassOrFunOrFieldNames().forEach {
+                                classMapped["$rawDir.$it"] = "$obfuscateDir.$it"
+                            }
+                        }
                     }
                 }
+                ignores.add(locationProject)
+                locationProject = project.findLocationProject(rawDir, variantName,ignores)
             }
         }
         return classMapped
