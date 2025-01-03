@@ -40,7 +40,7 @@ class Mapping {
     internal var packageNameIndex = -1L
 
     //遍历文件夹下的所有直接子类，混淆文件名及移动目录
-    fun obfuscateAllClass(project: Project, variantName: String,isOnlyCollection: Boolean = false): MutableMap<String, String> {
+    fun obfuscateAllClass(project: Project, variantName: String): MutableMap<String, String> {
         val classMapped = mutableMapOf<String, String>()
         val iterator = dirMapping.iterator()
         while (iterator.hasNext()) {
@@ -48,6 +48,11 @@ class Mapping {
             val rawDir = entry.key
             var locationProject = project.findLocationProject(rawDir, variantName)
             var ignores =  mutableListOf<Project?>()
+            if(locationProject == null){
+                iterator.remove()
+                continue
+            }
+
             // 这里防止多个项目有相同的包名目录 所以这里循环处理
             while (locationProject!=null){
                 val manifestPackage = locationProject.findPackage()
@@ -66,7 +71,6 @@ class Mapping {
                         if (isObfuscated(rawClassPath)) continue
 
                         val obfuscatePath = obfuscatePath(rawClassPath)  //混淆后 xx.Xxx
-                        if(isOnlyCollection) continue
 
                         if (rawDir == manifestPackage) {
                             file.insertImportXxxIfAbsent(manifestPackage)

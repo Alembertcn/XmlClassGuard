@@ -211,7 +211,12 @@ fun findClassByManifest(text: String, packageName: String): List<ClassInfo> {
             "receiver" == childName || "provider" == childName
         ) {
             val name = childNode.attribute("android:name").toString()
-            val classPath = if (name.startsWith(".")) "$packageName$name" else name
+            var classPath = if (name.startsWith(".")) "$packageName$name" else name
+            if(name == "androidx.startup.InitializationProvider"){
+                 (childNode.children() as List<Node?>).find { it?.attribute("android:value").toString() == "androidx.startup" }?.attribute("android:name")?.let {
+                     classPath = it.toString()
+                }
+            }
             classInfoList.add(ClassInfo(classPath))
         }
     }
