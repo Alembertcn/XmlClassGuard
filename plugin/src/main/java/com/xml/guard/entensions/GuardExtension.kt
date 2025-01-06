@@ -26,4 +26,9 @@ open class GuardExtension {
     var packageChange = HashMap<String, String>()
 
     var moveDir = HashMap<String, String>()
+
+    /*
+     *  防止混淆的包名
+     */
+    var whiteList:List<String> = mutableListOf()
 }

@@ -23,6 +23,7 @@ object MappingParser {
         if (!mappingFile.exists()) return mapping
         var classIndex = -1L
         var packageNameIndex = -1L
+        var packageParent = ""
         mappingFile.forEachLine { line ->
             val mat = MAPPING_PATTERN.matcher(line)
             if (mat.find()) {
@@ -36,6 +37,9 @@ object MappingParser {
                     if (LOWER_PATTERN.matcher(obfuscateName).matches()) {
                         val index = obfuscateName.to26Long()
                         packageNameIndex = packageNameIndex.coerceAtLeast(index)
+                    }
+                    if(obfuscateName.contains(".")){
+                        packageParent = obfuscateName.substring(0,obfuscateName.lastIndexOf(".")+1)
                     }
                 } else {
                     val index = obfuscateName.lastIndexOf(".")
@@ -72,6 +76,7 @@ object MappingParser {
         }
         mapping.classIndex = classIndex
         mapping.packageNameIndex = packageNameIndex
+        mapping.packageParent = packageParent
         return mapping
     }
 }

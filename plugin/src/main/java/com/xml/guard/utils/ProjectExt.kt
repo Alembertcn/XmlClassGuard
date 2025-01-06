@@ -110,6 +110,10 @@ fun Project.manifestFile(): File {
     val sourceSet = (extensions.getByName("android") as BaseExtension).sourceSets
     return sourceSet.getByName("main").manifest.srcFile
 }
+//返回proguardFile
+fun Project.proguardFile(): File {
+   return File(projectDir, "proguard-rules.pro")
+}
 
 
 //查找依赖的Android Project，也就是子 module，包括间接依赖的子 module

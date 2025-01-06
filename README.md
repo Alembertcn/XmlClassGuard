@@ -94,7 +94,7 @@ xmlClassGuard {
 
 # 任务介绍
 
-`XmlClassGuard`插件共有5个任务，分别是`findAabConstraintReferencedIds`、`findAndConstraintReferencedIds`、`moveDir`、`packageChange`及`xmlClassGuard`，这5个任务之间没有任何关系，下面将一一介绍
+`XmlClassGuard`插件共有6个任务，分别是`findAabConstraintReferencedIds`、`findAndConstraintReferencedIds`、`moveDir`、`packageChange`、`xmlClassGuard`及`replaceProguardFile`，这6个任务之间没有任何关系，下面将一一介绍
 
 ## 1、findAabConstraintReferencedIds/findAndConstraintReferencedIds
 
@@ -234,6 +234,17 @@ class mapping:
 ```
 
 可以看到，包名完全是根据自定义生成的结果，而类名便从`Z`开始，依次递增`Z BA BC ...`, 这里可以把类名看成26进制的字符串依次递增
+补充 
+1. 由于只用小写单词作为目录判断逻辑容易产生误匹配 所以新增规则在匹配到最后一个带.的路径作为父级路径
+2. 新增白名单路径匹配规则 在白名单内的xml 包名下的忽略混淆
+ ```groovy
+    xmlClassGuard {
+        whiteList = ["com.tencent","com.github","com.baidu"]
+    }
+```
+
+## 7、替换混淆文件  
+replaceProguardFile  
 
 
 # 注意事项⚠️

@@ -37,6 +37,7 @@ open class XmlClassGuardTask @Inject constructor(
     }
 
     private val mappingFile = guardExtension.mappingFile ?: project.file("xml-class-mapping.txt")
+    private val guardWhiteList = guardExtension.whiteList
     private val mapping = MappingParser.parse(mappingFile)
     private val hasNavigationPlugin = project.plugins.hasPlugin("androidx.navigation.safeargs")
     private val fragmentDirectionList = mutableListOf<String>()
@@ -55,20 +56,11 @@ open class XmlClassGuardTask @Inject constructor(
         }
         //3、替换Java/kotlin文件里引用到的类
         if (classMapping.isNotEmpty()) {
-            androidProjects.forEach { replaceJavaText(it, classMapping) }
-
-            // replace proguard-rules.pro
             androidProjects.forEach {
-                val proguardFile = File(it.projectDir, "proguard-rules.pro")
-                if((it.name == "app" || it.name == "module_src") && proguardFile.exists()){
-                    var replaceText = proguardFile.readText()
-                    classMapping.forEach {
-                        replaceText = replaceText.replaceWords(it.key,it.value)
-                    }
-                    proguardFile.writeText(replaceText)
-                }
+                replaceJavaText(it, classMapping)
             }
         }
+
         //4、混淆映射写出到文件
         mapping.writeMappingToFile(mappingFile)
     }
@@ -115,8 +107,8 @@ open class XmlClassGuardTask @Inject constructor(
             val dirPath = classPath.getDirPath()
             //本地不存在这个文件
             if (project.findLocationProject(dirPath, variantName) == null) continue
-            //已经混淆
-            if (mapping.isObfuscated(classPath)) continue
+            //已经混淆 || 白名单内
+            if (mapping.isObfuscated(classPath) || isInWhiteList(classPath)) continue
 
             val obfuscatePath = mapping.obfuscatePath(classPath)
 
@@ -135,6 +127,10 @@ open class XmlClassGuardTask @Inject constructor(
             }
         }
         xmlFile.writeText(xmlText)
+    }
+
+    private fun isInWhiteList(rawClassPath: String): Boolean {
+       return guardWhiteList.find { rawClassPath.startsWith(it) }!=null
     }
 
 
@@ -179,7 +175,6 @@ open class XmlClassGuardTask @Inject constructor(
                     //  (?<!\\.)：负向后行断言，确保 rawName 前面不是 .
                     .replace(Regex("(?<!\\.)\\b($rawName)\\b"),obfuscateName)
             }
-
             rawFile.parent.endsWith(obfuscatePackage.replace(".", File.separator)) -> {
                 //同一包下的类，原则上替换类名即可，但考虑到会依赖同包下类的内部类，所以也需要替换包名+类名
                 replaceText = replaceText.replaceWords("$rawPath.$rawName", "$obfuscatePath.$obfuscateName")
