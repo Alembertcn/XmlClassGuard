@@ -102,24 +102,29 @@ open class MoveDirTask @Inject constructor(
                     replaceText.replaceWords("$oldPath.", "$newPath.")
                         .replaceWords("""android:name=".""", """android:name="${newPath}.""")
                 } else {
-                    replaceText.replaceWords(oldPath, newPath)
+                    if (name.endsWith(".kt") || name.endsWith(".java")) {
+                        // 确保正则匹配到非R BR R2 BuildConfig等
+                        replaceText.replace(Regex("(?<!\\.)\\b(${Regex.escape(oldPath)})\\b(?!\\.+(R\\b|BR\\b|R2\\b|BuildConfig\\b))"),newPath)
+                    }else{
+                        replaceText.replaceWords(oldPath, newPath)
+                    }
                 }
-            if (name.endsWith(".kt") || name.endsWith(".java")) {
-                /*
-                 移动目录时，manifest里的package属性不会更改
-                 上面代码会将将R、BuildConfig等类路径替换掉，所以这里需要还原回去
-                 */
-//                replaceText = replaceText.replaceWords("$newPath.R", "$oldPath.R")
-//                    .replaceWords("$newPath.BR", "$oldPath.BR")
-//                    .replaceWords("$newPath.R2", "$oldPath.R2")
-//                    .replaceWords("$newPath.BuildConfig", "$oldPath.BuildConfig")
-//                    .replaceWords("$newPath.databinding", "$oldPath.databinding")
-                replaceText = replaceText.replaceWords("$newPath.R", "$manifestPackage.R")
-                    .replaceWords("$newPath.BR", "$manifestPackage.BR")
-                    .replaceWords("$newPath.R2", "$manifestPackage.R2")
-                    .replaceWords("$newPath.BuildConfig", "$manifestPackage.BuildConfig")
-                    .replaceWords("$newPath.databinding", "$manifestPackage.databinding")
-            }
+//            if (name.endsWith(".kt") || name.endsWith(".java")) {
+//                /*
+//                 移动目录时，manifest里的package属性不会更改
+//                 上面代码会将将R、BuildConfig等类路径替换掉，所以这里需要还原回去
+//                 */
+////                replaceText = replaceText.replaceWords("$newPath.R", "$oldPath.R")
+////                    .replaceWords("$newPath.BR", "$oldPath.BR")
+////                    .replaceWords("$newPath.R2", "$oldPath.R2")
+////                    .replaceWords("$newPath.BuildConfig", "$oldPath.BuildConfig")
+////                    .replaceWords("$newPath.databinding", "$oldPath.databinding")
+//                replaceText = replaceText.replaceWords("$newPath.R", "$manifestPackage.R")
+//                    .replaceWords("$newPath.BR", "$manifestPackage.BR")
+//                    .replaceWords("$newPath.R2", "$manifestPackage.R2")
+//                    .replaceWords("$newPath.BuildConfig", "$manifestPackage.BuildConfig")
+//                    .replaceWords("$newPath.databinding", "$manifestPackage.databinding")
+//            }
         }
         writeText(replaceText)
     }

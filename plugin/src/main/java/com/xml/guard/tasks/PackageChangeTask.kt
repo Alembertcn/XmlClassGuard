@@ -33,46 +33,61 @@ open class PackageChangeTask @Inject constructor(
         val packageExtension = guardExtension.packageChange
         if (packageExtension.isEmpty()) return
         val androidProjects = allDependencyAndroidProjects()
-        androidProjects.forEach { it.changePackage(packageExtension) }
+        androidProjects.forEach {
+            if(it.name.startsWith("lib_") || it.name.startsWith("module_") || it.name.startsWith("app")){
+                it.changePackage(packageExtension)
+            }
+        }
     }
 
     private fun Project.changePackage(map: Map<String, String>) {
         val oldPackage: String = findPackage()
-        val newPackage = map[oldPackage] ?: return
-        val dirs = findXmlDirs(variantName, "layout")
-        dirs.add(manifestFile())
-        dirs.add(buildFile)
-        //1、修改layout文件、AndroidManifest文件、build.gradle文件
-        files(dirs).asFileTree.forEach { file ->
-            when (file.name) {
-                //修改AndroidManifest.xml文件
-                "AndroidManifest.xml" -> file.modifyManifestFile(oldPackage, newPackage)
-                //修改 build.gradle namespace
-                buildFile.name -> file.modifyBuildGradleFile(oldPackage, newPackage)
-                //修改layout文件
-                else -> file.modifyLayoutXml(oldPackage)
+        val newPackage = map[oldPackage]
+        val javaDirs = javaDirs(variantName)
+        if(newPackage!=null){
+            val dirs = findXmlDirs(variantName, "layout")
+            dirs.add(manifestFile())
+            dirs.add(buildFile)
+            //1、修改layout文件、AndroidManifest文件、build.gradle文件
+            files(dirs).asFileTree.forEach { file ->
+                when (file.name) {
+                    //修改AndroidManifest.xml文件
+                    "AndroidManifest.xml" -> file.modifyManifestFile(oldPackage, newPackage)
+                    //修改 build.gradle namespace
+                    buildFile.name -> file.modifyBuildGradleFile(oldPackage, newPackage)
+                    //修改layout文件
+                    else -> file.modifyLayoutXml(oldPackage)
+                }
             }
         }
 
-        val javaDirs = javaDirs(variantName)
         //2.修改 kt/java文件
         files(javaDirs).asFileTree.forEach { javaFile ->
-            javaFile.readText()
-                .replaceWords("$oldPackage.R", "$newPackage.R")
-                .replaceWords("$oldPackage.R2", "$newPackage.R2")
-                .replaceWords("$oldPackage.BR", "$newPackage.BR")
-                .replaceWords("$oldPackage.BuildConfig", "$newPackage.BuildConfig")
-                .replaceWords("$oldPackage.databinding", "$newPackage.databinding")
-                .let { javaFile.writeText(it) }
+            var readText = javaFile.readText()
+            map.entries.forEach { e->
+                val old = e.key
+                val newStr = e.value
+                if(old==null || newStr==null)return
+
+                readText = readText.replaceWords("$old.R", "$newStr.R")
+                    .replaceWords("$old.R2", "$newStr.R2")
+                    .replaceWords("$old.BR", "$newStr.BR")
+                    .replaceWords("$old.BuildConfig", "$newStr.BuildConfig")
+                    .replaceWords("$old.databinding", "$newStr.databinding")
+            }
+            readText.let { javaFile.writeText(it) }
         }
 
-        //3.对旧包名下的直接子类，检测R类、BuildConfig类是否有用到，有的话，插入import语句
-        val oldPackagePath = oldPackage.replace(".", File.separator)
-        javaDirs.forEach {
-            File(it, oldPackagePath).listFiles { f -> f.isFile }?.forEach { file ->
-                file.insertImportXxxIfAbsent(newPackage)
+        //3.替换完再进行对旧包名下的直接子类，检测R类、BuildConfig类是否有用到，有的话，插入import语句
+        if(newPackage!=null){
+            val oldPackagePath = oldPackage.replace(".", File.separator)
+            javaDirs.forEach {
+                File(it, oldPackagePath).listFiles { f -> f.isFile }?.forEach { file ->
+                    file.insertImportXxxIfAbsent(newPackage)
+                }
             }
         }
+
     }
 
     //修复build.gradle文件的 namespace 语句
