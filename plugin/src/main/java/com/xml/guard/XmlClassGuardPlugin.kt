@@ -2,6 +2,7 @@ package com.xml.guard
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.tasks.createWorkingCxxBuildTask
 import com.xml.guard.entensions.GuardExtension
 import com.xml.guard.model.aabResGuard
 import com.xml.guard.model.andResGuard
@@ -15,6 +16,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.Exec
+import org.gradle.internal.impldep.bsh.commands.dir
+import org.gradle.internal.impldep.org.bouncycastle.asn1.x500.style.RFC4519Style
+import org.gradle.internal.impldep.org.bouncycastle.asn1.x500.style.RFC4519Style.description
 import kotlin.reflect.KClass
 
 /**
@@ -54,6 +59,26 @@ class XmlClassGuardPlugin : Plugin<Project> {
         createTask("packageChange$variantName", PackageChangeTask::class, guardExt, variantName)
         createTask("moveDir$variantName", MoveDirTask::class, guardExt, variantName)
         createTask("replaceProguardFile", ReplaceGuardFile::class, guardExt)
+
+        // 注册一个任务
+        project.tasks.register("convertPngToWebp", Exec::class.java) {
+            description = "Convert non-9-patch PNG images to WebP format."
+            group = "webp"
+            // 设置工作目录
+            workingDir = project.projectDir
+
+            // 定义命令
+            var cwebpPath = "${project.android.sdkDirectory}/bin/cwebp"
+            var resDir = "${project.projectDir}/src/main/res"
+
+            commandLine = listOf(
+                "python",
+                "${project.rootDir}/gradle/webp/convert_png_to_webp.py",
+                "${project.rootDir}/app/src/main/res",
+                "${project.rootDir}/app/src/main/res/webp"
+            )
+        }
+
         if (guardExt.findAndConstraintReferencedIds) {
             createAndFindConstraintReferencedIdsTask(variantName)
         }
