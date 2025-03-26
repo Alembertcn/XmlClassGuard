@@ -61,23 +61,23 @@ class XmlClassGuardPlugin : Plugin<Project> {
         createTask("replaceProguardFile", ReplaceGuardFile::class, guardExt)
 
         // 注册一个任务
-        project.tasks.register("convertPngToWebp", Exec::class.java) {
-            description = "Convert non-9-patch PNG images to WebP format."
-            group = "webp"
-            // 设置工作目录
-            workingDir = project.projectDir
-
-            // 定义命令
-            var cwebpPath = "${project.android.sdkDirectory}/bin/cwebp"
-            var resDir = "${project.projectDir}/src/main/res"
-
-            commandLine = listOf(
-                "python",
-                "${project.rootDir}/gradle/webp/convert_png_to_webp.py",
-                "${project.rootDir}/app/src/main/res",
-                "${project.rootDir}/app/src/main/res/webp"
-            )
-        }
+//        project.tasks.register("convertPngToWebp", Exec::class.java) {
+//            description = "Convert non-9-patch PNG images to WebP format."
+//            group = "webp"
+//            // 设置工作目录
+//            workingDir = project.projectDir
+//
+//            // 定义命令
+//            var cwebpPath = "${project.android.sdkDirectory}/bin/cwebp"
+//            var resDir = "${project.projectDir}/src/main/res"
+//
+//            commandLine = listOf(
+//                "python",
+//                "${project.rootDir}/gradle/webp/convert_png_to_webp.py",
+//                "${project.rootDir}/app/src/main/res",
+//                "${project.rootDir}/app/src/main/res/webp"
+//            )
+//        }
 
         if (guardExt.findAndConstraintReferencedIds) {
             createAndFindConstraintReferencedIdsTask(variantName)
