@@ -5,10 +5,10 @@ plugins {
 ext{
     publishGroup = "plugins"
     moduleName = 'XmlClassGuard'
-    publishVersion = '1.2.13'
+    publishVersion = '1.2.14'
     descContent = '混淆'
 }
-apply from: 'publishing_maven.gradle'
+apply from: rootProject.file("./gradle/publishing_maven.gradle")
 
 
 sourceSets {

@@ -8,7 +8,7 @@ private val classPattern = Pattern.compile("class\\s+([_a-zA-Z-0-9]+)[\\s(]")
 private val funPattern = Pattern.compile("(fun|fun\\s.*)\\s([._a-zA-Z0-9]+)\\s*\\(")
 private val fieldPattern = Pattern.compile("va[lr]\\s+([._a-zA-Z0-9]+)[\\s:]+")
 private val jvmFileNamePattern = Pattern.compile("@file\\s*:\\s*JvmName\\s*[(]\\s*\"(.+)\\s*\"[)]")
-private val docOrCommentPattern = Pattern.compile("(/[*][\\s\\S]*?[*]/)|(//.*\n)")
+private val docOrCommentPattern = Pattern.compile("(/[*][\\s\\S]*?[*]/)|(//.*$)", Pattern.MULTILINE)
 
 /**
  * User: ljx
