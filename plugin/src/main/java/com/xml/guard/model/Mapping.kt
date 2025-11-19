@@ -100,7 +100,10 @@ class Mapping {
                                 classMapped["${rawClassPath}Kt"] = "${obfuscatePath}Kt"
                             }
                             ktParser.getTopClassOrFunOrFieldNames().forEach {
-                                classMapped["$rawDir.$it"] = "$obfuscateDir.$it"
+                                //优先修改文件 如果存在和和文件名重复的顶层方法则跳过
+                                if (classMapped["$rawDir.$it"] == null) {
+                                    classMapped["$rawDir.$it"] = "$obfuscateDir.$it"
+                                }
                             }
                         }
                     }

@@ -15,17 +15,15 @@ afterEvaluate {
                 from components.java
             }
         }
-        if("true" == useMavenLocal){
-            repositories {
-                maven {
-                    // change to point to your repo, e.g. http://my.org/repo
+        repositories {
+            maven {
+                // change to point to your repo, e.g. http://my.org/repo
 //                url = uri("$rootDir/repo")
-                    allowInsecureProtocol = true
-                    url 'https://nexus.jinhui.pro/repository/maven-android-release'
-                    credentials {
-                        username System.getenv("WB_REPO_USER")
-                        password System.getenv("WB_REPO_PWD")
-                    }
+                allowInsecureProtocol = true
+                url System.getenv("WB_REPO_URL_PUBLISH")
+                credentials {
+                    username System.getenv("WB_REPO_USER")
+                    password System.getenv("WB_REPO_PWD")
                 }
             }
         }
