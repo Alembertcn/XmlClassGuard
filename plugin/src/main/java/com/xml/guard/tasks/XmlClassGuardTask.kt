@@ -13,7 +13,7 @@ import com.xml.guard.utils.findXmlDirs
 import com.xml.guard.utils.getDirPath
 import com.xml.guard.utils.insertImportXxxIfAbsent
 import com.xml.guard.utils.javaDirs
-import com.xml.guard.utils.manifestFile
+import com.xml.guard.utils.manifestFilesAll
 import com.xml.guard.utils.removeSuffix
 import com.xml.guard.utils.replaceWords
 import org.gradle.api.DefaultTask
@@ -70,7 +70,8 @@ open class XmlClassGuardTask @Inject constructor(
         val packageName = project.findPackage()
         //过滤res目录下的layout、navigation、xml目录
         val xmlDirs = project.findXmlDirs(variantName, "layout", "navigation", "xml")
-        xmlDirs.add(project.manifestFile())
+        val elements = project.manifestFilesAll()
+        xmlDirs.addAll(elements)
         project.files(xmlDirs).asFileTree.forEach { xmlFile ->
             guardXml(project, xmlFile, packageName)
         }
@@ -164,6 +165,8 @@ open class XmlClassGuardTask @Inject constructor(
 
 //        var replaceText = rawText.replace("$rawPackage.$rawName","$obfuscatePackage.$obfuscateName")
 
+        val packagePath = obfuscatePackage.replace(".", File.separator)
+        val isSamePackage = rawFile.parent.endsWith(File.separator + packagePath) || rawFile.parent == packagePath
         var replaceText = rawText
         when {
             rawFile.absolutePath.removeSuffix()
@@ -175,7 +178,8 @@ open class XmlClassGuardTask @Inject constructor(
                     //  (?<!\\.)：负向后行断言，确保 rawName 前面不是 .
                     .replace(Regex("(?<!\\.)\\b($rawName)\\b"),obfuscateName)
             }
-            rawFile.parent.endsWith(obfuscatePackage.replace(".", File.separator)) -> {
+            isSamePackage -> {
+                // 同包：父路径以「分隔符+完整包路径」结尾，避免误匹配（如包 b 匹配到 .../a/b）
                 //同一包下的类，原则上替换类名即可，但考虑到会依赖同包下类的内部类，所以也需要替换包名+类名
                 replaceText = replaceText.replaceWords("$rawPath.$rawName", "$obfuscatePath.$obfuscateName")
                     .replaceWords(rawPath, obfuscatePath)
@@ -190,7 +194,6 @@ open class XmlClassGuardTask @Inject constructor(
                 //替换成功或已替换
                 if (replaceText != rawText || replaceText.contains(obfuscatePackage)) {
                     //rawFile 文件内有引用 rawName 类，则需要替换类名
-//                    replaceText = replaceText.replaceWords(rawName, obfuscateName)
                     if(replaceText.contains("import $obfuscatePath") || replaceText.contains("import $obfuscatePackage.*")){
 //                        replaceText = replaceText.replaceWords(rawName, obfuscateName)
                         replaceText = replaceText.replace(Regex("(?<!\\bclass(\\s)?|\\.)\\b($rawName)\\b"),obfuscateName)

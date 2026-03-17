@@ -105,10 +105,18 @@ fun Project.resDirs(variantName: String): List<File> {
     return resDirs
 }
 
-//返回manifest文件目录,有且仅有一个
+//返回manifest文件目录,有且仅有一个（仅 main）
 fun Project.manifestFile(): File {
     val sourceSet = (extensions.getByName("android") as BaseExtension).sourceSets
     return sourceSet.getByName("main").manifest.srcFile
+}
+
+//返回该 Project 所有 source set 的 AndroidManifest（不按当前 variant 过滤，含 main + 所有渠道如 h5、gpp 等）
+fun Project.manifestFilesAll(): List<File> {
+    val sourceSet = (extensions.getByName("android") as BaseExtension).sourceSets
+    return sourceSet.names.mapNotNull { name ->
+        sourceSet.getByName(name).manifest.srcFile.let { if (it.exists()) it else null }
+    }
 }
 //返回proguardFile
 fun Project.proguardFile(): File {

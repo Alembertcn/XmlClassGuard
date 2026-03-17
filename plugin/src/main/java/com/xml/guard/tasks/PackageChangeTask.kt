@@ -7,6 +7,7 @@ import com.xml.guard.utils.findXmlDirs
 import com.xml.guard.utils.insertImportXxxIfAbsent
 import com.xml.guard.utils.javaDirs
 import com.xml.guard.utils.manifestFile
+import com.xml.guard.utils.manifestFilesAll
 import com.xml.guard.utils.replaceWords
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -46,7 +47,7 @@ open class PackageChangeTask @Inject constructor(
         val javaDirs = javaDirs(variantName)
         if(newPackage!=null){
             val dirs = findXmlDirs(variantName, "layout")
-            dirs.add(manifestFile())
+            dirs.addAll(manifestFilesAll())
             dirs.add(buildFile)
             //1、修改layout文件、AndroidManifest文件、build.gradle文件
             files(dirs).asFileTree.forEach { file ->
